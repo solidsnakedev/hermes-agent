@@ -29,9 +29,7 @@ let
   # aarch64-darwin, so we exclude "voice" on Darwin and install all other extras.
   extras =
     if stdenv.hostPlatform.isDarwin then [
-      "modal" "daytona" "messaging" "matrix" "cron" "cli"
-      "tts-premium" "slack" "pty" "honcho" "mcp"
-      "homeassistant" "sms" "acp" "dingtalk" "feishu"
+      "messaging" "cron" "cli" "slack" "pty" "mcp"
     ] else [ "all" ];
 in
 pythonSet.mkVirtualEnv "hermes-agent-env" {
