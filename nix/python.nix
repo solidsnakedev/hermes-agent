@@ -2,9 +2,8 @@
 {
   python311,
   lib,
-  callPackage,
   stdenv,
-  fetchurl,
+  callPackage,
   uv2nix,
   pyproject-nix,
   pyproject-build-systems,
@@ -16,18 +15,6 @@ let
     sourcePreference = "wheel";
   };
 
-  # uv2nix fails to match the macosx_14_0_arm64 wheel for onnxruntime on
-  # aarch64-darwin. Provide the wheel directly so platform detection is bypassed.
-  onnxruntimeOverlay = final: prev:
-    lib.optionalAttrs stdenv.hostPlatform.isDarwin {
-      onnxruntime = prev.onnxruntime.overrideAttrs (_: {
-        src = fetchurl {
-          url = "https://files.pythonhosted.org/packages/60/69/6c40720201012c6af9aa7d4ecdd620e521bd806dc6269d636fdd5c5aeebe/onnxruntime-1.24.4-cp311-cp311-macosx_14_0_arm64.whl";
-          hash = "sha256:0bdfce8e9a6497cec584aab407b71bf697dac5e1b7b7974adc50bf7533bdb3a2";
-        };
-      });
-    };
-
   pythonSet =
     (callPackage pyproject-nix.build.packages {
       python = python311;
@@ -35,9 +22,18 @@ let
       (lib.composeManyExtensions [
         pyproject-build-systems.overlays.default
         overlay
-        onnxruntimeOverlay
       ]);
+
+  # The "voice" extra pulls in faster-whisper → onnxruntime, which only ships
+  # wheel-only builds for macosx_14_0_arm64. uv2nix cannot match this tag on
+  # aarch64-darwin, so we exclude "voice" on Darwin and install all other extras.
+  extras =
+    if stdenv.hostPlatform.isDarwin then [
+      "modal" "daytona" "messaging" "matrix" "cron" "cli"
+      "tts-premium" "slack" "pty" "honcho" "mcp"
+      "homeassistant" "sms" "acp" "dingtalk" "feishu"
+    ] else [ "all" ];
 in
 pythonSet.mkVirtualEnv "hermes-agent-env" {
-  hermes-agent = [ "all" ];
+  hermes-agent = extras;
 }
