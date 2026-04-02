@@ -1606,7 +1606,6 @@ dependencies = [
     { name = "anthropic" },
     { name = "edge-tts" },
     { name = "fal-client" },
-    { name = "faster-whisper" },
     { name = "fire" },
     { name = "firecrawl-py" },
     { name = "httpx" },
